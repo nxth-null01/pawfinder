@@ -1,49 +1,110 @@
-<<<<<<< HEAD
-# PawFinder - Missing & Stray Animals System
+# 🐾 PawFinder
 
-Modern PHP MVC + MySQL web app for reporting missing pets and found/stray animals.
+PawFinder is a web-based platform designed to help communities report, search, and track missing or stray animals. The system provides an organized way for pet owners, rescuers, and community members to share information and increase the chances of reuniting animals with their families.
 
-## Stack
-HTML5, CSS3, Bootstrap 5, JavaScript ES6, PHP MVC, MySQL
+## ✨ Features
 
-## Setup
-1. Import `database/pawfinder.sql` in phpMyAdmin.
-2. Put folder in `htdocs` if using XAMPP/WAMP.
-3. Edit `config/database.php` if needed.
-4. Open: `http://localhost/pawfinder/public/`
+### Public Features
 
-## Demo Login
-Admin: admin@pawfinder.test / admin123
-User: user@pawfinder.test / user123
+* View reported missing and stray animals
+* Search animals by name, type, or status
+* View animal details and contact information
+* Responsive and user-friendly interface
 
-## Features
-- Landing page
-- Missing animal reports
-- Found/stray animal reports
-- Search/filter
-- Upload animal photo
-- Sighting reports
-- User login/register
-- User dashboard
-- Admin dashboard
-- Report approval/status
-- Friendly orange/yellow UI
+### User Features
 
+* User Registration and Login
+* Report missing pets
+* Report stray animals
+* Upload animal images
+* Manage submitted reports
 
-## Latest updates
-- Added admin success notifications after approval/status updates.
-- Added login/register password hide/show toggle.
-- Added optional sighting photo upload.
-- Added other contact information field when submitting missing/found reports.
+### Admin Features
 
-### Existing database update
-If you already imported the old SQL, run this in phpMyAdmin SQL tab:
+* Dashboard overview
+* Approve or reject reports
+* Edit report information
+* Manage users
+* Monitor system activity
+
+## 🛠️ Built With
+
+### Frontend
+
+* HTML5
+* CSS3
+* Bootstrap 5
+* JavaScript
+* Lucide Icons
+
+### Backend
+
+* PHP
+
+### Database
+
+* MySQL
+
+## 📸 Screenshots
+
+Add screenshots of your project here.
+
+## 🚀 Installation
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/pawfinder.git
+```
+
+2. Move the project to your web server directory
+
+```text
+C:\wamp64\www\
+```
+
+3. Create a database named:
 
 ```sql
-ALTER TABLE reports ADD COLUMN owner_contact VARCHAR(255) NULL AFTER location;
-ALTER TABLE sightings ADD COLUMN photo VARCHAR(255) NULL AFTER note;
+pawfinder_db
 ```
-=======
-# pawfinder
-PawFinder – A web-based platform for reporting, searching, and reuniting missing and stray animals with their owner
->>>>>>> 21e7012b26cd72060189c7e8a468892010e19a8a
+
+4. Import the provided SQL file into phpMyAdmin.
+
+5. Configure the database connection settings.
+
+6. Start Apache and MySQL.
+
+7. Open the project:
+
+```text
+http://localhost/pawfinder
+```
+
+## 📂 Project Structure
+
+```text
+pawfinder/
+├── assets/
+├── uploads/
+├── database/
+├── public/
+├── admin/
+├── includes/
+└── index.php
+```
+
+## 🎯 Purpose
+
+PawFinder aims to improve community engagement in animal welfare by providing a centralized platform where lost pets can be found faster and stray animals can be reported efficiently.
+
+## 👨‍💻 Author
+
+**Nathaniel G. Simbajon**
+
+BS Information Technology Student
+UI/UX Engineer • Web Developer
+
+## 📄 License
+
+This project is intended for educational and portfolio purposes.
