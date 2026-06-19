@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # PawFinder - Missing & Stray Animals System
 
 Modern PHP MVC + MySQL web app for reporting missing pets and found/stray animals.
@@ -42,3 +43,7 @@ If you already imported the old SQL, run this in phpMyAdmin SQL tab:
 ALTER TABLE reports ADD COLUMN owner_contact VARCHAR(255) NULL AFTER location;
 ALTER TABLE sightings ADD COLUMN photo VARCHAR(255) NULL AFTER note;
 ```
+=======
+# pawfinder
+PawFinder – A web-based platform for reporting, searching, and reuniting missing and stray animals with their owner
+>>>>>>> 21e7012b26cd72060189c7e8a468892010e19a8a
