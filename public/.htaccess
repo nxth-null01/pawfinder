@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# If existing file or folder, wag i-rewrite
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route lahat sa index.php
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
