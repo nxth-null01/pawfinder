@@ -1,3 +1,6 @@
+<?php
+$reports = $reports ?? [];
+?>
 <div class="container py-5">
   <span class="eyebrow">
     <i data-lucide="search"></i>
@@ -11,7 +14,7 @@
     </div>
   </div>
 
-  <form class="filter-card search-filter mt-4">
+  <form class="filter-card search-filter mt-4" method="GET" action="">
     <input type="hidden" name="route" value="reports">
 
     <div class="search-field search-field-main">

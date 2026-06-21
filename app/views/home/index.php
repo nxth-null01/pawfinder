@@ -1,3 +1,13 @@
+<?php
+$reports = $reports ?? [];
+$stats = $stats ?? [
+  'total' => 0,
+  'missing' => 0,
+  'found' => 0,
+  'reunited' => 0
+];
+?>
+
 <section class="hero">
   <div class="container">
     <div class="row align-items-center g-5">
