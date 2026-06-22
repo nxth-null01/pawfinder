@@ -52,6 +52,7 @@ class AdminController extends BaseController
             $report = Report::find($request['report_id']);
             Report::addActivity($request['report_id'], $_SESSION['user']['id'], 'party-popper', 'Case Updated', 'Admin approved a request and marked this case as ' . $request['result_status'] . '.');
             if ($report) Report::notify($report['user_id'], $request['report_id'], 'case', 'Case updated', 'Your report was marked as ' . ucfirst($request['result_status']) . '.');
+            Report::notifyFollowers($request['report_id'], $_SESSION['user']['id'], 'case', 'Case updated', 'This case was marked as ' . ucfirst($request['result_status']) . '.');
         } elseif ($request) {
             Report::updateCloseRequest($id, 'rejected');
             $report = Report::find($request['report_id']);

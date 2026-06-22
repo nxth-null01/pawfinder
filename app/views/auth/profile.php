@@ -7,6 +7,8 @@ if (!empty($user['name'])) {
 }
 $initials = $initials ?: 'U';
 $profilePhoto = $user['profile_photo'] ?? '';
+$profileCompletion = $profileCompletion ?? ['percent'=>0,'items'=>[]];
+$reputation = $reputation ?? ['points'=>0,'badge'=>'Community Member','icon'=>'paw-print','reports'=>0,'comments'=>0,'helpful'=>0,'verified_sightings'=>0];
 $avatarHtml = !empty($profilePhoto)
   ? '<img src="' . htmlspecialchars($profilePhoto) . '" alt="' . htmlspecialchars($user['name'] ?? 'User') . '">'
   : htmlspecialchars($initials);
@@ -37,7 +39,21 @@ $avatarHtml = !empty($profilePhoto)
       <div class="profile-side-card">
         <div class="profile-avatar-medium"><?= $avatarHtml ?></div>
         <h3 class="fw-black mb-1"><?= htmlspecialchars($user['name'] ?? 'User') ?></h3>
-        <p class="text-muted mb-3"><?= htmlspecialchars($user['role'] ?? 'user') ?> account</p>
+        <p class="text-muted mb-2"><?= htmlspecialchars($user['role'] ?? 'user') ?> account</p>
+        <div class="user-rep-pill mb-3"><i data-lucide="<?= htmlspecialchars($reputation['icon'] ?? 'paw-print') ?>"></i> <?= htmlspecialchars($reputation['badge'] ?? 'Community Member') ?> · <?= (int)($reputation['points'] ?? 0) ?> pts</div>
+
+        <div class="profile-completion-card mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <b>Profile Completion</b>
+            <span><?= (int)($profileCompletion['percent'] ?? 0) ?>%</span>
+          </div>
+          <div class="completion-bar"><span style="width: <?= (int)($profileCompletion['percent'] ?? 0) ?>%"></span></div>
+          <div class="completion-list mt-3">
+            <?php foreach(($profileCompletion['items'] ?? []) as $item): ?>
+              <small class="<?= !empty($item['done']) ? 'done' : '' ?>"><i data-lucide="<?= !empty($item['done']) ? 'check-circle-2' : 'circle' ?>"></i> <?= htmlspecialchars($item['label']) ?></small>
+            <?php endforeach; ?>
+          </div>
+        </div>
 
         <div class="profile-menu">
           <a href="#account-info" data-profile-tab="account-info" class="active"><i data-lucide="user-round"></i> Account Information</a>
@@ -57,6 +73,13 @@ $avatarHtml = !empty($profilePhoto)
             <h2 class="fw-black mb-0">Edit Profile</h2>
           </div>
           <span class="settings-icon"><i data-lucide="badge-check"></i></span>
+        </div>
+
+        <div class="reputation-grid mt-3">
+          <div><b><?= (int)($reputation['points'] ?? 0) ?></b><span>Reputation pts</span></div>
+          <div><b><?= (int)($reputation['reports'] ?? 0) ?></b><span>Reports</span></div>
+          <div><b><?= (int)($reputation['helpful'] ?? 0) ?></b><span>Helpful votes</span></div>
+          <div><b><?= (int)($reputation['verified_sightings'] ?? 0) ?></b><span>Verified sightings</span></div>
         </div>
 
         <form action="?route=profile-update" method="POST" enctype="multipart/form-data" class="row g-3 mt-3 confirm-before-submit" data-confirm-title="Save profile changes?" data-confirm-message="Your name and email will be updated." data-confirm-button="Save Changes">

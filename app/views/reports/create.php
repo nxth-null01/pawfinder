@@ -57,10 +57,16 @@
                 <input name="location" class="form-control" placeholder="Barangay, landmark, city" required>
             </div>
 
-            <div class="col-12">
+            <div class="col-md-8">
                 <label>Other Contact Information</label>
                 <input name="owner_contact" class="form-control" placeholder="Phone number, Facebook, Messenger, alternate email, etc.">
                 <small class="field-hint">Optional pero helpful ito kapag may nakakita agad sa pet.</small>
+            </div>
+
+            <div class="col-md-4">
+                <label>Reward Amount</label>
+                <input type="number" min="0" step="0.01" name="reward_amount" class="form-control" placeholder="Optional">
+                <small class="field-hint">Optional reward for missing pet cases.</small>
             </div>
 
             <div class="col-12">

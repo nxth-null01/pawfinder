@@ -105,7 +105,11 @@ class AuthController extends BaseController
         }
 
         $_SESSION['user'] = $user;
-        $this->view('auth/profile', ['user' => $user]);
+        $this->view('auth/profile', [
+            'user' => $user,
+            'profileCompletion' => Report::profileCompletion($user),
+            'reputation' => Report::userReputation($user['id'])
+        ]);
     }
 
     public function updateProfile()

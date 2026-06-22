@@ -123,3 +123,40 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   INDEX(report_id),
   INDEX(user_id)
 );
+
+-- PawJect advanced community feature upgrade
+-- Run these ALTER statements only if your database already exists.
+ALTER TABLE reports ADD COLUMN reward_amount DECIMAL(10,2) NULL AFTER owner_contact;
+ALTER TABLE sightings ADD COLUMN is_verified TINYINT(1) DEFAULT 0 AFTER photo;
+ALTER TABLE comments ADD COLUMN parent_id INT NULL AFTER comment;
+ALTER TABLE comments ADD INDEX(parent_id);
+
+CREATE TABLE IF NOT EXISTS comment_helpfuls (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  comment_id INT NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_helpful(comment_id, user_id),
+  INDEX(comment_id),
+  INDEX(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS report_follows (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  report_id INT NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_follow(report_id, user_id),
+  INDEX(report_id),
+  INDEX(user_id)
+);
+
+
+-- Comment moderation/thread upgrades for existing databases
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_deleted TINYINT(1) DEFAULT 0 AFTER parent_id;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS edited_at DATETIME NULL AFTER created_at;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_reported TINYINT(1) DEFAULT 0 AFTER edited_at;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS report_reason TEXT NULL AFTER is_reported;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS is_pinned TINYINT(1) DEFAULT 0 AFTER report_reason;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS type VARCHAR(40) DEFAULT 'comment' AFTER is_pinned;
+ALTER TABLE comments ADD COLUMN IF NOT EXISTS sighting_location VARCHAR(255) NULL AFTER type;

@@ -34,6 +34,7 @@
             $currentUserPhoto = $_SESSION['user']['profile_photo'] ?? '';
             $firstName = strtok($currentUserName, ' ') ?: 'User';
             $initial = strtoupper(substr($currentUserName, 0, 1));
+            $navReputation = Report::userReputation($_SESSION['user']['id']);
           ?>
 
           <li class="nav-item dropdown notif-nav-item">
@@ -54,6 +55,7 @@
                     <div>
                       <b><?= htmlspecialchars($n['title']) ?></b>
                       <small><?= htmlspecialchars($n['message']) ?></small>
+                      <em><?= htmlspecialchars($n['created_at'] ?? '') ?></em>
                     </div>
                   </a>
                 <?php endforeach; ?>
@@ -80,6 +82,10 @@
               <span><?= htmlspecialchars($firstName) ?></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
+              <li class="profile-dropdown-summary">
+                <strong><?= htmlspecialchars($currentUserName) ?></strong>
+                <small><i data-lucide="<?= htmlspecialchars($navReputation['icon'] ?? 'paw-print') ?>"></i> <?= htmlspecialchars($navReputation['badge'] ?? 'Community Member') ?> · <?= (int)($navReputation['points'] ?? 0) ?> pts</small>
+              </li>
               <li><a class="dropdown-item" href="?route=profile"><i data-lucide="settings"></i> Profile Settings</a></li>
               <li><a class="dropdown-item" href="?route=dashboard"><i data-lucide="clipboard-list"></i> My Reports</a></li>
               <li><a class="dropdown-item" href="?route=notifications"><i data-lucide="bell"></i> Notifications</a></li>
