@@ -168,8 +168,31 @@ class Report
 
     public static function analytics()
     {
-        self::ensureFeatureTables(); $pdo = Database::pdo();
-        return ['reports'=>self::stats(),'pending'=>$pdo->query("SELECT COUNT(*) total FROM reports WHERE is_approved = 0")->fetch(),'comments'=>$pdo->query("SELECT COUNT(*) total FROM comments")->fetch(),'sightings'=>$pdo->query("SELECT COUNT(*) total FROM sightings")->fetch(),'recent'=>$pdo->query("SELECT DATE(created_at) day, COUNT(*) total FROM reports GROUP BY DATE(created_at) ORDER BY day DESC LIMIT 7")->fetchAll(),'byType'=>$pdo->query("SELECT report_type, COUNT(*) total FROM reports GROUP BY report_type")->fetchAll()];
+        self::ensureFeatureTables();
+        $pdo = Database::pdo();
+        $reports = self::stats();
+        $total = (int)($reports['total'] ?? 0);
+        $reunited = (int)($reports['reunited'] ?? 0);
+        $reports['active'] = (int)($pdo->query("SELECT COUNT(*) total FROM reports WHERE status = 'active'")->fetch()['total'] ?? 0);
+        $reports['closed'] = (int)($pdo->query("SELECT COUNT(*) total FROM reports WHERE status = 'closed'")->fetch()['total'] ?? 0);
+        $reports['success_rate'] = $total > 0 ? round(($reunited / $total) * 100, 1) : 0;
+
+        return [
+            'reports' => $reports,
+            'pending' => $pdo->query("SELECT COUNT(*) total FROM reports WHERE is_approved = 0")->fetch(),
+            'comments' => $pdo->query("SELECT COUNT(*) total FROM comments WHERE is_deleted = 0")->fetch(),
+            'sightings' => $pdo->query("SELECT COUNT(*) total, SUM(is_verified = 1) verified FROM sightings")->fetch(),
+            'followers' => $pdo->query("SELECT COUNT(*) total FROM report_follows")->fetch(),
+            'thisMonth' => $pdo->query("SELECT (SELECT COUNT(*) FROM reports WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) reports, (SELECT COUNT(*) FROM sightings WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) sightings, (SELECT COUNT(*) FROM comments WHERE created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01') AND is_deleted = 0) comments")->fetch(),
+            'recent' => $pdo->query("SELECT DATE(created_at) day, COUNT(*) total FROM reports GROUP BY DATE(created_at) ORDER BY day DESC LIMIT 7")->fetchAll(),
+            'monthly' => $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') month, COUNT(*) total FROM reports GROUP BY DATE_FORMAT(created_at, '%Y-%m') ORDER BY month DESC LIMIT 6")->fetchAll(),
+            'byType' => $pdo->query("SELECT report_type, COUNT(*) total FROM reports GROUP BY report_type")->fetchAll(),
+            'areas' => $pdo->query("SELECT COALESCE(NULLIF(TRIM(location), ''), 'Unknown') location, COUNT(*) total FROM reports GROUP BY COALESCE(NULLIF(TRIM(location), ''), 'Unknown') ORDER BY total DESC LIMIT 8")->fetchAll(),
+            'contributors' => $pdo->query("SELECT u.id, u.name, u.profile_photo, COUNT(DISTINCT r.id) reports, COUNT(DISTINCT c.id) comments, COUNT(DISTINCT s.id) verified_sightings, (COUNT(DISTINCT r.id) * 10 + COUNT(DISTINCT c.id) * 2 + COUNT(DISTINCT s.id) * 20 + SUM(CASE WHEN r.status = 'reunited' THEN 30 ELSE 0 END)) points FROM users u LEFT JOIN reports r ON r.user_id = u.id LEFT JOIN comments c ON c.user_id = u.id AND c.is_deleted = 0 LEFT JOIN sightings s ON s.name = u.name AND s.is_verified = 1 GROUP BY u.id, u.name, u.profile_photo ORDER BY points DESC LIMIT 5")->fetchAll(),
+            'activeCases' => $pdo->query("SELECT r.id, r.animal_name, r.location, r.status, COUNT(DISTINCT c.id) comments, COUNT(DISTINCT s.id) sightings, COUNT(DISTINCT f.id) followers FROM reports r LEFT JOIN comments c ON c.report_id = r.id AND c.is_deleted = 0 LEFT JOIN sightings s ON s.report_id = r.id LEFT JOIN report_follows f ON f.report_id = r.id GROUP BY r.id ORDER BY (COUNT(DISTINCT c.id) + COUNT(DISTINCT s.id) + COUNT(DISTINCT f.id)) DESC LIMIT 5")->fetchAll(),
+            'reportedComments' => $pdo->query("SELECT c.id, c.comment, c.report_reason, c.created_at, r.id report_id, r.animal_name, u.name user_name FROM comments c LEFT JOIN reports r ON r.id = c.report_id LEFT JOIN users u ON u.id = c.user_id WHERE c.is_reported = 1 ORDER BY c.created_at DESC LIMIT 8")->fetchAll(),
+            'pendingSightings' => $pdo->query("SELECT s.*, r.animal_name FROM sightings s JOIN reports r ON r.id = s.report_id WHERE s.is_verified = 0 ORDER BY s.created_at DESC LIMIT 8")->fetchAll(),
+        ];
     }
 
     public static function comments($reportId, $sort = 'newest')

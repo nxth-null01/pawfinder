@@ -17,6 +17,13 @@ if (!empty($report['last_seen_date'])) {
     $lastSeenText = $days == 0 ? 'Today' : $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
 }
 $shareUrl = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+$currentUserId = (int)($_SESSION['user']['id'] ?? 0);
+$isAdminUser = (($_SESSION['user']['role'] ?? '') === 'admin');
+$canVerifySightings = $currentUserId && ($isAdminUser || (int)($report['user_id'] ?? 0) === $currentUserId);
+$mapQuery = $report['location'] ?? '';
+if (!empty($sightings) && !empty($sightings[0]['location'])) {
+    $mapQuery = $sightings[0]['location'];
+}
 $commentsByParent = [];
 foreach ($comments as $comment) {
     $parentKey = empty($comment['parent_id']) ? 0 : (int)$comment['parent_id'];
@@ -211,6 +218,41 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
     <div class="row g-4 align-items-start report-overview-grid">
         <div class="col-lg-6">
             <img class="detail-img" src="uploads/<?= htmlspecialchars($report['photo'] ?: 'placeholder.svg') ?>" alt="Animal photo">
+
+            <div class="related-cases-card mt-4">
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                    <div>
+                        <span class="eyebrow small-eyebrow"><i data-lucide="scan-search"></i> Related Cases</span>
+                        <h5 class="fw-black mb-0 mt-2">Similar Reports</h5>
+                    </div>
+                    <span class="mini-badge"><?= count($similarReports) ?> found</span>
+                </div>
+
+                <?php if(empty($similarReports)): ?>
+                    <div class="empty-state compact-empty related-empty">
+                        <div class="empty-state-icon"><i data-lucide="paw-print"></i></div>
+                        <h5>No related cases yet</h5>
+                        <p>Reports with similar species, breed, or color will appear here.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="related-case-list">
+                        <?php foreach($similarReports as $r): ?>
+                            <a class="related-case-item" href="?route=report-show&id=<?= htmlspecialchars($r['id']) ?>">
+                                <img src="uploads/<?= htmlspecialchars($r['photo'] ?: 'placeholder.svg') ?>" alt="<?= htmlspecialchars($r['animal_name'] ?: 'Related pet') ?>">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <b><?= htmlspecialchars($r['animal_name'] ?: 'Unknown pet') ?></b>
+                                        <span class="mini-badge status-mini"><?= ucfirst(htmlspecialchars($r['status'] ?? 'active')) ?></span>
+                                    </div>
+                                    <p><?= htmlspecialchars(trim(($r['species'] ?? '') . ' • ' . ($r['color'] ?? ''), ' •')) ?></p>
+                                    <small><i data-lucide="map-pin"></i> <?= htmlspecialchars($r['location'] ?? 'No location') ?></small>
+                                </div>
+                                <i data-lucide="chevron-right"></i>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="col-lg-6">
@@ -284,6 +326,109 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
     </div>
 
     <hr class="my-5">
+
+    <section id="sightings" class="sighting-hub mb-5">
+        <div class="d-flex justify-content-between align-items-end gap-3 flex-wrap mb-3">
+            <div>
+                <span class="eyebrow"><i data-lucide="map"></i> Sighting Map</span>
+                <h3 class="fw-black mt-3 mb-1">Latest Sightings & Movement</h3>
+                <p class="text-muted mb-0">Quick view of possible locations, verified updates, and movement timeline.</p>
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-7">
+                <div class="sighting-map-card h-100">
+                    <?php if(!empty($sightings)): ?>
+                        <iframe
+                            title="Sighting map"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://www.google.com/maps?q=<?= urlencode($mapQuery) ?>&output=embed"></iframe>
+                    <?php else: ?>
+                        <div class="empty-state compact-empty h-100 d-flex flex-column justify-content-center">
+                            <div class="empty-state-icon"><i data-lucide="map-pin-off"></i></div>
+                            <h5>No sighting pins yet</h5>
+                            <p>When someone submits a sighting, the latest location will be shown here.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="sighting-list-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-black mb-0">Sighting Reports</h5>
+                        <span class="mini-badge"><i data-lucide="map-pin-check"></i> <?= count($sightings) ?> total</span>
+                    </div>
+
+                    <?php if(empty($sightings)): ?>
+                        <div class="empty-state compact-empty">
+                            <div class="empty-state-icon"><i data-lucide="eye"></i></div>
+                            <h5>No sightings reported</h5>
+                            <p>Community updates will appear here once submitted.</p>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php foreach($sightings as $sighting): ?>
+                        <div class="sighting-entry <?= !empty($sighting['is_verified']) ? 'verified' : '' ?>">
+                            <?php if(!empty($sighting['photo'])): ?>
+                                <img class="sighting-photo" src="uploads/<?= htmlspecialchars($sighting['photo']) ?>" alt="Sighting photo">
+                            <?php else: ?>
+                                <div class="sighting-photo placeholder"><i data-lucide="paw-print"></i></div>
+                            <?php endif; ?>
+                            <div class="sighting-entry-body">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <b><i data-lucide="map-pin"></i> <?= htmlspecialchars($sighting['location']) ?></b>
+                                    <?php if(!empty($sighting['is_verified'])): ?>
+                                        <span class="verified-pill"><i data-lucide="badge-check"></i> Verified</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if(!empty($sighting['note'])): ?><p><?= htmlspecialchars($sighting['note']) ?></p><?php endif; ?>
+                                <small class="text-muted">By <?= htmlspecialchars($sighting['name']) ?> • <?= htmlspecialchars($sighting['created_at']) ?></small>
+                                <div class="d-flex gap-2 flex-wrap mt-2">
+                                    <a class="btn btn-sm btn-light rounded-pill" target="_blank" href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($sighting['location']) ?>"><i data-lucide="external-link"></i> Open map</a>
+                                    <?php if($canVerifySightings && empty($sighting['is_verified'])): ?>
+                                        <form method="post" action="?route=sighting-verify" class="d-inline">
+                                            <input type="hidden" name="report_id" value="<?= htmlspecialchars($report['id']) ?>">
+                                            <input type="hidden" name="sighting_id" value="<?= htmlspecialchars($sighting['id']) ?>">
+                                            <button class="btn btn-sm btn-brand rounded-pill"><i data-lucide="badge-check"></i> Verify</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="sighting-movement-card mt-4">
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
+                <h5 class="fw-black mb-0"><i data-lucide="route"></i> Sighting Timeline</h5>
+                <small class="text-muted">Newest to oldest</small>
+            </div>
+            <?php if(empty($sightings)): ?>
+                <div class="empty-state compact-empty">
+                    <div class="empty-state-icon"><i data-lucide="route-off"></i></div>
+                    <h5>No movement timeline yet</h5>
+                    <p>Sightings will automatically build a timeline of possible pet movement.</p>
+                </div>
+            <?php else: ?>
+                <div class="movement-track">
+                    <?php foreach($sightings as $index => $sighting): ?>
+                        <div class="movement-step <?= !empty($sighting['is_verified']) ? 'verified' : '' ?>">
+                            <div class="movement-dot"><i data-lucide="<?= !empty($sighting['is_verified']) ? 'badge-check' : 'map-pin' ?>"></i></div>
+                            <div>
+                                <b><?= htmlspecialchars($sighting['location']) ?></b>
+                                <p><?= htmlspecialchars($sighting['note'] ?: 'Possible sighting update submitted by the community.') ?></p>
+                                <small><?= htmlspecialchars($sighting['created_at']) ?> <?= !empty($sighting['is_verified']) ? '• Verified by owner/admin' : '• Pending verification' ?></small>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
 
     <div class="row g-4">
         <div class="col-lg-6">
@@ -419,19 +564,5 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
         </div>
     <?php endif; ?>
 
-    <?php if (!empty($similarReports)): ?>
-        <hr class="my-5">
-        <span class="eyebrow"><i data-lucide="scan-search"></i> Similar Reports</span>
-        <h3 class="fw-black mt-3">Related Reports Nearby / Similar Pet</h3>
-        <div class="row g-3 mt-1">
-            <?php foreach($similarReports as $r): ?>
-                <div class="col-md-4">
-                    <div class="comment-item h-100">
-                        <div class="comment-avatar"><i data-lucide="paw-print"></i></div>
-                        <div><b><?= htmlspecialchars($r['animal_name'] ?: 'Unknown') ?></b><p><?= htmlspecialchars($r['species'] . ' • ' . $r['color']) ?></p><small class="text-muted"><?= htmlspecialchars($r['location']) ?></small><br><a class="btn btn-sm btn-dark rounded-pill mt-2" href="?route=report-show&id=<?= htmlspecialchars($r['id']) ?>">View</a></div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+
 </div>
