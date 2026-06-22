@@ -18,6 +18,7 @@ $routes = [
   'about' => [HomeController::class,'about'],
   'success-stories' => [HomeController::class,'successStories'],
   'report-show' => [ReportController::class,'show'],
+  'report-poster' => [ReportController::class,'poster'],
   'report-create' => [ReportController::class,'create'],
   'report-store' => [ReportController::class,'store'],
   'sighting-store' => [ReportController::class,'storeSighting'],

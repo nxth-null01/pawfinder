@@ -208,7 +208,7 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
 }
 ?>
 <div class="container py-5">
-    <div class="row g-4 align-items-start">
+    <div class="row g-4 align-items-start report-overview-grid">
         <div class="col-lg-6">
             <img class="detail-img" src="uploads/<?= htmlspecialchars($report['photo'] ?: 'placeholder.svg') ?>" alt="Animal photo">
         </div>
@@ -254,11 +254,32 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
                         </form>
                     <?php endif; ?>
                     <a class="btn btn-sm btn-dark rounded-pill px-3" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($shareUrl) ?>"><i data-lucide="share-2"></i> Share</a>
+                    <a class="btn btn-sm btn-light rounded-pill px-3" target="_blank" href="?route=report-poster&id=<?= htmlspecialchars($report['id']) ?>"><i data-lucide="file-down"></i> Generate Poster</a>
                     <button class="btn btn-sm btn-light rounded-pill px-3" type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($shareUrl, ENT_QUOTES) ?>'); this.innerText='Copied link';"><i data-lucide="copy"></i> Copy Link</button>
                 </div>
             </div>
 
             <p class="mt-3"><?= nl2br(htmlspecialchars($report['description'])) ?></p>
+
+            <div class="sticky-pet-card mt-4">
+                <div class="sticky-pet-card-top">
+                    <img src="uploads/<?= htmlspecialchars($report['photo'] ?: 'placeholder.svg') ?>" alt="<?= htmlspecialchars($report['animal_name'] ?: 'Pet') ?>">
+                    <div>
+                        <small class="text-muted">Quick case info</small>
+                        <h5><?= htmlspecialchars($report['animal_name'] ?: 'Unknown Pet') ?></h5>
+                    </div>
+                </div>
+                <div class="sticky-pet-grid">
+                    <div><span>Status</span><b><?= ucfirst(htmlspecialchars($report['status'])) ?></b></div>
+                    <div><span>Type</span><b><?= ucfirst(htmlspecialchars($report['report_type'])) ?></b></div>
+                    <div><span>Last seen</span><b><?= htmlspecialchars($lastSeenText) ?></b></div>
+                    <div><span>Reward</span><b><?= !empty($report['reward_amount']) ? '₱' . number_format((float)$report['reward_amount'], 0) : 'None' ?></b></div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap mt-3">
+                    <a class="btn btn-sm btn-brand rounded-pill px-3" href="#comments"><i data-lucide="message-circle"></i> Help Case</a>
+                    <a class="btn btn-sm btn-light rounded-pill px-3" target="_blank" href="?route=report-poster&id=<?= htmlspecialchars($report['id']) ?>"><i data-lucide="file-down"></i> Poster</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -270,7 +291,11 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
             <h3 class="fw-black mt-3">Case Updates</h3>
             <div class="timeline-card mt-3">
                 <?php if(empty($timeline)): ?>
-                    <div class="timeline-item"><span><i data-lucide="clipboard-plus"></i></span><div><b>Report Submitted</b><p>Waiting for meaningful case updates like sightings, verified sightings, reunited, or closed case.</p></div></div>
+                    <div class="empty-state compact-empty">
+                        <div class="empty-state-icon"><i data-lucide="activity"></i></div>
+                        <h5>No major updates yet</h5>
+                        <p>Meaningful updates such as new sightings, verified sightings, reunited requests, and closed cases will appear here.</p>
+                    </div>
                 <?php endif; ?>
                 <?php foreach($timeline as $item): ?>
                     <div class="timeline-item">
@@ -320,7 +345,16 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
 
             <div class="comment-list mt-3">
                 <?php paw_render_comments(0, $commentsByParent, $report['id'], $report['user_id']); ?>
-                <?php if(empty($comments)): ?><p class="text-muted">No comments yet. Be the first to help.</p><?php endif; ?>
+                <?php if(empty($comments)): ?>
+                    <div class="empty-state compact-empty comment-empty-state">
+                        <div class="empty-state-icon"><i data-lucide="message-circle-heart"></i></div>
+                        <h5>Be the first to help this case</h5>
+                        <p>Ask a question, share a useful detail, or report a possible sighting.</p>
+                        <?php if(!empty($_SESSION['user'])): ?>
+                            <button type="button" class="btn btn-sm btn-brand rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#sightingModal"><i data-lucide="eye"></i> Report Sighting</button>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

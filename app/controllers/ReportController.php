@@ -306,4 +306,17 @@ class ReportController extends BaseController
         exit;
     }
 
+    public function poster()
+    {
+        $report = Report::find($_GET['id'] ?? 0);
+        if (!$report) { http_response_code(404); exit('Report not found'); }
+        $lastSeenText = 'Unknown';
+        if (!empty($report['last_seen_date'])) {
+            $days = (new DateTime($report['last_seen_date']))->diff(new DateTime('today'))->days;
+            $lastSeenText = $days == 0 ? 'Today' : $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        }
+        $shareUrl = 'http' . (!empty($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/?route=report-show&id=' . urlencode($report['id']);
+        $this->view('reports/poster', compact('report', 'lastSeenText', 'shareUrl'));
+    }
+
 }

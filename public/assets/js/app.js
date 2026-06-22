@@ -254,4 +254,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
+  // Lightweight skeleton/loading overlay for page actions
+  const skeletonOverlay = document.createElement('div');
+  skeletonOverlay.className = 'page-skeleton-overlay';
+  skeletonOverlay.innerHTML = `
+    <div class="skeleton-card" aria-label="Loading">
+      <div class="d-flex align-items-center gap-3">
+        <span class="skeleton-circle"></span>
+        <div class="flex-grow-1">
+          <span class="skeleton-line medium"></span>
+          <span class="skeleton-line short"></span>
+        </div>
+      </div>
+      <span class="skeleton-line long"></span>
+      <span class="skeleton-line medium"></span>
+      <span class="skeleton-line long"></span>
+    </div>`;
+  document.body.appendChild(skeletonOverlay);
+
+  const showSkeleton = () => skeletonOverlay.classList.add('is-visible');
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href') || '';
+    if (
+      href.startsWith('#') ||
+      href.startsWith('javascript:') ||
+      link.target === '_blank' ||
+      link.hasAttribute('download') ||
+      link.dataset.bsToggle
+    ) return;
+    link.addEventListener('click', () => showSkeleton());
+  });
+
+  document.querySelectorAll('form').forEach((form) => {
+    form.addEventListener('submit', () => {
+      if (form.classList.contains('confirm-before-submit') && form.dataset.confirmed !== 'true') return;
+      showSkeleton();
+    });
+  });
+
 });
