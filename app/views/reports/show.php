@@ -41,6 +41,30 @@ function paw_comment_avatar($comment) {
     return htmlspecialchars(strtoupper(substr($name ?: 'U', 0, 1)));
 }
 
+function paw_comment_has_visible_children($commentId, $commentsByParent) {
+    if (empty($commentsByParent[$commentId])) return false;
+    foreach ($commentsByParent[$commentId] as $child) {
+        $childId = (int)($child['id'] ?? 0);
+        if (empty($child['is_deleted']) || paw_comment_has_visible_children($childId, $commentsByParent)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function paw_comment_visible_count($parentId, $commentsByParent) {
+    if (empty($commentsByParent[$parentId])) return 0;
+    $count = 0;
+    foreach ($commentsByParent[$parentId] as $comment) {
+        $commentId = (int)($comment['id'] ?? 0);
+        $hasVisibleChildren = paw_comment_has_visible_children($commentId, $commentsByParent);
+        if (empty($comment['is_deleted']) || $hasVisibleChildren) {
+            $count++;
+        }
+    }
+    return $count;
+}
+
 function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwnerId, $level = 0) {
     if (empty($commentsByParent[$parentId])) return;
     foreach ($commentsByParent[$parentId] as $c):
@@ -53,6 +77,10 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
         $canDelete = $isOwner || $isAdmin;
         $canPin = $currentUserId && ((int)$reportOwnerId === $currentUserId || $isAdmin) && empty($c['is_deleted']);
         $isDeleted = !empty($c['is_deleted']);
+        $hasVisibleReplies = paw_comment_has_visible_children((int)$c['id'], $commentsByParent);
+        if ($isDeleted && !$hasVisibleReplies) {
+            continue;
+        }
         $isSighting = ($c['type'] ?? '') === 'sighting';
         $commentBadge = 'Community Member';
         $commentBadgeIcon = 'paw-print';
@@ -200,7 +228,7 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
                             <div class="modal-body">
                                 <input type="hidden" name="report_id" value="<?= htmlspecialchars($reportId) ?>">
                                 <input type="hidden" name="comment_id" value="<?= htmlspecialchars($c['id']) ?>">
-                                <p class="mb-0 text-muted">This will show as “This comment was deleted.” Replies will stay visible.</p>
+                                <p class="mb-0 text-muted">If this comment has replies, it will show as “This comment was deleted.” If it has no replies, it will be hidden completely.</p>
                             </div>
                             <div class="modal-footer border-0"><button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger rounded-pill">Delete</button></div>
                         </form>
@@ -490,7 +518,7 @@ function paw_render_comments($parentId, $commentsByParent, $reportId, $reportOwn
 
             <div class="comment-list mt-3">
                 <?php paw_render_comments(0, $commentsByParent, $report['id'], $report['user_id']); ?>
-                <?php if(empty($comments)): ?>
+                <?php if(paw_comment_visible_count(0, $commentsByParent) === 0): ?>
                     <div class="empty-state compact-empty comment-empty-state">
                         <div class="empty-state-icon"><i data-lucide="message-circle-heart"></i></div>
                         <h5>Be the first to help this case</h5>

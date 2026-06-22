@@ -163,7 +163,7 @@
       <article class="team-card member-card">
         <span class="role-pill">Member</span>
         <div class="avatar">
-          <img src="assets/images/gulle.jpg" alt="Christopher Gulle">
+          <img src="assets/images/tupe.jpg" alt="Christopher Gulle">
         </div>
         <h3>Christopher Gulle</h3>
         <p>Project Member</p>
@@ -177,7 +177,7 @@
       <article class="team-card member-card">
         <span class="role-pill">Member</span>
         <div class="avatar">
-          <img src="assets/images/johncarlo.jpg" alt="John Carlo Interno">
+          <img src="assets/images/interno.jpg" alt="John Carlo Interno">
         </div>
         <h3>John Carlo Interno</h3>
         <p>Project Member</p>
